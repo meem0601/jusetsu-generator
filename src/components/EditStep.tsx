@@ -1,0 +1,164 @@
+"use client";
+
+import { JusetsuData } from "@/types/jusetsu";
+
+interface Props {
+  data: JusetsuData;
+  onChange: (data: JusetsuData) => void;
+  onGeneratePdf: () => void;
+  generating: boolean;
+}
+
+const sections = [
+  {
+    title: "🏠 物件の表示",
+    fields: [
+      { key: "propertyName", label: "物件名称" },
+      { key: "address", label: "所在地" },
+      { key: "roomNumber", label: "部屋番号" },
+      { key: "layout", label: "間取り" },
+      { key: "structure", label: "構造" },
+      { key: "area", label: "専有面積" },
+    ],
+  },
+  {
+    title: "📋 登記簿に記載された事項",
+    fields: [
+      { key: "owner", label: "所有者（甲区）" },
+      { key: "mortgage", label: "抵当権等（乙区）" },
+    ],
+  },
+  {
+    title: "⚖️ 法令上の制限",
+    fields: [{ key: "zoning", label: "用途地域" }],
+  },
+  {
+    title: "🔌 インフラ",
+    fields: [
+      { key: "water", label: "飲用水" },
+      { key: "electricity", label: "電気" },
+      { key: "gas", label: "ガス" },
+      { key: "drainage", label: "排水" },
+    ],
+  },
+  {
+    title: "🏗️ 設備",
+    fields: [
+      { key: "kitchen", label: "台所" },
+      { key: "bathroom", label: "浴室" },
+      { key: "toilet", label: "トイレ" },
+      { key: "aircon", label: "エアコン" },
+      { key: "otherEquipment", label: "その他設備" },
+    ],
+  },
+  {
+    title: "💰 賃料等",
+    fields: [
+      { key: "rent", label: "賃料" },
+      { key: "managementFee", label: "管理費・共益費" },
+      { key: "deposit", label: "敷金" },
+      { key: "keyMoney", label: "礼金" },
+      { key: "otherFees", label: "その他費用" },
+    ],
+  },
+  {
+    title: "📅 契約期間",
+    fields: [
+      { key: "contractStart", label: "開始日" },
+      { key: "contractEnd", label: "終了日" },
+      { key: "renewalCondition", label: "更新条件" },
+    ],
+  },
+  {
+    title: "🗺️ ハザードマップ",
+    fields: [
+      { key: "floodRisk", label: "洪水" },
+      { key: "landslideRisk", label: "土砂災害" },
+      { key: "tsunamiRisk", label: "津波" },
+    ],
+  },
+  {
+    title: "🏗️ 耐震・石綿",
+    fields: [
+      { key: "earthquakeResistance", label: "耐震診断" },
+      { key: "asbestos", label: "石綿使用調査" },
+    ],
+  },
+  {
+    title: "📝 契約解除・違約金",
+    fields: [
+      { key: "cancellationTerms", label: "解約条件" },
+      { key: "penalty", label: "違約金" },
+    ],
+  },
+  {
+    title: "⭐ 特約事項・その他",
+    fields: [
+      { key: "specialTerms", label: "特約事項", textarea: true },
+      { key: "managementCompany", label: "管理会社" },
+      { key: "landlordName", label: "貸主" },
+    ],
+  },
+] as const;
+
+export default function EditStep({ data, onChange, onGeneratePdf, generating }: Props) {
+  const update = (key: string, value: string) => {
+    onChange({ ...data, [key]: value });
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+        💡 AIが抽出した情報を確認・修正してください。修正後「PDF生成」ボタンで重説PDFをダウンロードできます。
+      </div>
+
+      {sections.map((section) => (
+        <div
+          key={section.title}
+          className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6"
+        >
+          <h3 className="text-base font-bold text-gray-900 mb-4">
+            {section.title}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {section.fields.map((field) => (
+              <div
+                key={field.key}
+                className={"textarea" in field && field.textarea ? "md:col-span-2" : ""}
+              >
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  {field.label}
+                </label>
+                {"textarea" in field && field.textarea ? (
+                  <textarea
+                    value={(data as unknown as Record<string, string>)[field.key] || ""}
+                    onChange={(e) => update(field.key, e.target.value)}
+                    rows={4}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={(data as unknown as Record<string, string>)[field.key] || ""}
+                    onChange={(e) => update(field.key, e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <div className="sticky bottom-4">
+        <button
+          onClick={onGeneratePdf}
+          disabled={generating}
+          className="w-full py-4 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700 transition-colors shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {generating ? "⏳ PDF生成中..." : "📄 重説PDFを生成・ダウンロード"}
+        </button>
+      </div>
+    </div>
+  );
+}
