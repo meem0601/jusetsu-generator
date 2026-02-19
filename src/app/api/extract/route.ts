@@ -1,48 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { execSync } from "child_process";
-import { writeFileSync, readFileSync, mkdirSync, readdirSync, unlinkSync, rmSync } from "fs";
-import { join } from "path";
-import { tmpdir } from "os";
-import { randomUUID } from "crypto";
 import { defaultJusetsuData, JusetsuData } from "@/types/jusetsu";
 
 export const maxDuration = 120;
 
-async function pdfToImages(pdfBuffer: Buffer): Promise<string[]> {
-  const id = randomUUID();
-  const dir = join(tmpdir(), `jusetsu-${id}`);
-  mkdirSync(dir, { recursive: true });
-
-  const pdfPath = join(dir, "input.pdf");
-  writeFileSync(pdfPath, pdfBuffer);
-
-  execSync(`pdftoppm -png -r 200 "${pdfPath}" "${join(dir, "page")}"`, {
-    timeout: 30000,
-  });
-
-  const files = readdirSync(dir)
-    .filter((f) => f.endsWith(".png"))
-    .sort();
-
-  const base64Images = files.map((f) => {
-    const buf = readFileSync(join(dir, f));
-    return buf.toString("base64");
-  });
-
-  // cleanup
-  rmSync(dir, { recursive: true, force: true });
-  return base64Images;
-}
-
 async function extractWithClaude(
   client: Anthropic,
-  images: string[],
+  pdfBase64: string,
   docType: "contract" | "registry"
 ): Promise<Partial<JusetsuData>> {
   const prompt =
     docType === "contract"
-      ? `この賃貸借契約書の画像から以下の情報を抽出してJSON形式で返してください。
+      ? `この賃貸借契約書PDFから以下の情報を抽出してJSON形式で返してください。
 値が見つからない場合は空文字""にしてください。
 
 {
@@ -80,7 +49,7 @@ async function extractWithClaude(
 }
 
 JSONのみ返してください。説明文は不要です。`
-      : `この登記簿謄本の画像から以下の情報を抽出してJSON形式で返してください。
+      : `この登記簿謄本PDFから以下の情報を抽出してJSON形式で返してください。
 値が見つからない場合は空文字""にしてください。
 
 {
@@ -93,18 +62,23 @@ JSONのみ返してください。説明文は不要です。`
 
 JSONのみ返してください。説明文は不要です。`;
 
-  const imageContent: Anthropic.Messages.ImageBlockParam[] = images.slice(0, 10).map((b64) => ({
-    type: "image",
-    source: { type: "base64", media_type: "image/png", data: b64 },
-  }));
-
   const res = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
     messages: [
       {
         role: "user",
-        content: [...imageContent, { type: "text", text: prompt }],
+        content: [
+          {
+            type: "document",
+            source: {
+              type: "base64",
+              media_type: "application/pdf",
+              data: pdfBase64,
+            },
+          },
+          { type: "text", text: prompt },
+        ],
       },
     ],
   });
@@ -124,7 +98,6 @@ JSONのみ返してください。説明文は不要です。`;
 }
 
 async function getHazardInfo(address: string): Promise<Partial<JusetsuData>> {
-  // Try geocoding with 国土地理院 API
   try {
     const geoRes = await fetch(
       `https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(address)}`
@@ -139,48 +112,13 @@ async function getHazardInfo(address: string): Promise<Partial<JusetsuData>> {
     }
 
     const [lon, lat] = geoData[0].geometry.coordinates;
-
-    // Query hazard map APIs
     const results: Partial<JusetsuData> = {};
 
-    // 洪水浸水想定区域
-    try {
-      const floodRes = await fetch(
-        `https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/${Math.floor(lat * 10) / 10}/${lon.toFixed(1)}.png`,
-        { method: "HEAD" }
-      );
-      results.floodRisk = floodRes.ok
-        ? "洪水浸水想定区域に該当する可能性があります。ハザードマップで要確認。"
-        : "該当なし（要ハザードマップ確認）";
-    } catch {
-      results.floodRisk = "要確認（API接続エラー）";
-    }
-
-    // 土砂災害
-    try {
-      const landRes = await fetch(
-        `https://disaportaldata.gsi.go.jp/raster/05_dosekiryukeikaikuiki/${Math.floor(lat * 10) / 10}/${lon.toFixed(1)}.png`,
-        { method: "HEAD" }
-      );
-      results.landslideRisk = landRes.ok
-        ? "土砂災害警戒区域に該当する可能性があります。ハザードマップで要確認。"
-        : "該当なし（要ハザードマップ確認）";
-    } catch {
-      results.landslideRisk = "要確認（API接続エラー）";
-    }
-
-    // 津波
-    try {
-      const tsunamiRes = await fetch(
-        `https://disaportaldata.gsi.go.jp/raster/04_tsunami_newleg_data/${Math.floor(lat * 10) / 10}/${lon.toFixed(1)}.png`,
-        { method: "HEAD" }
-      );
-      results.tsunamiRisk = tsunamiRes.ok
-        ? "津波浸水想定区域に該当する可能性があります。ハザードマップで要確認。"
-        : "該当なし（要ハザードマップ確認）";
-    } catch {
-      results.tsunamiRisk = "要確認（API接続エラー）";
-    }
+    // Simple heuristic based on location
+    // In production, use proper tile-based hazard map lookup
+    results.floodRisk = `緯度${lat.toFixed(4)}, 経度${lon.toFixed(4)}付近。市区町村のハザードマップで要確認。`;
+    results.landslideRisk = "市区町村のハザードマップで要確認。";
+    results.tsunamiRisk = "市区町村のハザードマップで要確認。";
 
     return results;
   } catch {
@@ -204,16 +142,16 @@ export async function POST(request: NextRequest) {
 
     const client = new Anthropic();
 
-    // Convert PDFs to images
-    const [contractImages, registryImages] = await Promise.all([
-      pdfToImages(Buffer.from(await contractFile.arrayBuffer())),
-      pdfToImages(Buffer.from(await registryFile.arrayBuffer())),
+    // Convert files to base64
+    const [contractB64, registryB64] = await Promise.all([
+      contractFile.arrayBuffer().then((b) => Buffer.from(b).toString("base64")),
+      registryFile.arrayBuffer().then((b) => Buffer.from(b).toString("base64")),
     ]);
 
-    // Extract info with Claude
+    // Extract info with Claude (PDF directly)
     const [contractData, registryData] = await Promise.all([
-      extractWithClaude(client, contractImages, "contract"),
-      extractWithClaude(client, registryImages, "registry"),
+      extractWithClaude(client, contractB64, "contract"),
+      extractWithClaude(client, registryB64, "registry"),
     ]);
 
     // Merge data
