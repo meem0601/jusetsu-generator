@@ -14,9 +14,9 @@ export interface FieldCoord {
 
 // Page 1: Header, brokers, trading officers, guarantee association, signatures
 export const PAGE1 = {
-  // Header - borrower/lender names
-  borrowerName: { x: 70, y: 752, w: 230, h: 14, fontSize: 11 },
-  lenderName: { x: 385, y: 752, w: 230, h: 14, fontSize: 11 },
+  // Header - borrower/lender names (confirmed Y≈740 via grid ruler)
+  borrowerName: { x: 124, y: 740, w: 180, h: 12, fontSize: 10 },
+  lenderName: { x: 351, y: 740, w: 210, h: 12, fontSize: 10 },
 
   // Transaction type checkboxes - "媒介" check mark area (left side)
   transactionTypeLeftMediation: { x: 110, y: 692, w: 12, h: 12, fontSize: 12 },
@@ -84,200 +84,203 @@ export const PAGE1 = {
 // Page 2: Table of contents - no fillable fields (skip)
 
 // Page 3: Building display, landlord, registry, legal restrictions, infrastructure
+// Coordinates derived from template image (1190x1684 at 2x) → PDF: x/2, 842-y/2
 export const PAGE3 = {
-  // A. 建物の表示
-  buildingName: { x: 138, y: 785, w: 430, h: 12, fontSize: 9 },
-  addressDisplay: { x: 138, y: 765, w: 430, h: 12, fontSize: 9 },
-  addressRegistry: { x: 138, y: 745, w: 430, h: 12, fontSize: 9 },
+  // A. 建物の表示 (confirmed via grid ruler)
+  buildingName: { x: 175, y: 772, w: 400, h: 14, fontSize: 9 },
+  addressDisplay: { x: 175, y: 750, w: 400, h: 14, fontSize: 9 },
+  addressRegistry: { x: 175, y: 728, w: 400, h: 14, fontSize: 9 },
 
-  // 種類 checkboxes
-  typeManshon: { x: 190, y: 726, w: 12, h: 12, fontSize: 10 },
-  typeApart: { x: 262, y: 726, w: 12, h: 12, fontSize: 10 },
-  typeKodate: { x: 322, y: 726, w: 12, h: 12, fontSize: 10 },
-  typeTerrace: { x: 378, y: 726, w: 12, h: 12, fontSize: 10 },
+  // 種類 checkboxes (Y=706)
+  typeManshon: { x: 175, y: 706, w: 12, h: 12, fontSize: 10 },
+  typeApart: { x: 240, y: 706, w: 12, h: 12, fontSize: 10 },
+  typeKodate: { x: 300, y: 706, w: 12, h: 12, fontSize: 10 },
+  typeTerrace: { x: 360, y: 706, w: 12, h: 12, fontSize: 10 },
 
-  structure: { x: 138, y: 708, w: 430, h: 12, fontSize: 9 },
-  floorArea: { x: 168, y: 690, w: 80, h: 12, fontSize: 9 },
-  floorAreaRegistry: { x: 298, y: 690, w: 80, h: 12, fontSize: 9 },
-  layout: { x: 435, y: 690, w: 60, h: 12, fontSize: 9 },
-  builtDate: { x: 138, y: 672, w: 200, h: 12, fontSize: 9 },
+  structure: { x: 175, y: 684, w: 400, h: 14, fontSize: 9 },
+  floorArea: { x: 175, y: 662, w: 80, h: 14, fontSize: 9 },
+  floorAreaRegistry: { x: 300, y: 662, w: 80, h: 14, fontSize: 9 },
+  layout: { x: 450, y: 662, w: 60, h: 14, fontSize: 9 },
+  builtDate: { x: 175, y: 640, w: 200, h: 14, fontSize: 9 },
 
-  // B. 貸主の表示
-  landlordSameCheck: { x: 200, y: 645, w: 12, h: 12, fontSize: 10 },
-  landlordDiffCheck: { x: 348, y: 645, w: 12, h: 12, fontSize: 10 },
-  landlordAddress: { x: 100, y: 624, w: 470, h: 12, fontSize: 9 },
-  landlordName: { x: 100, y: 606, w: 470, h: 12, fontSize: 9 },
-  landlordRemarks: { x: 100, y: 586, w: 470, h: 24, fontSize: 8 },
+  // B. 貸主の表示 (Y≈600 for checkboxes, 578/556 for values)
+  landlordSameCheck: { x: 175, y: 600, w: 12, h: 12, fontSize: 10 },
+  landlordDiffCheck: { x: 330, y: 600, w: 12, h: 12, fontSize: 10 },
+  landlordAddress: { x: 175, y: 578, w: 400, h: 14, fontSize: 9 },
+  landlordName: { x: 175, y: 556, w: 400, h: 14, fontSize: 9 },
+  landlordRemarks: { x: 175, y: 534, w: 400, h: 20, fontSize: 8 },
 
-  // Ⅰ-1. 登記記録
-  registryDate: { x: 410, y: 555, w: 160, h: 12, fontSize: 8 },
-  ownerAddress: { x: 138, y: 530, w: 430, h: 12, fontSize: 9 },
-  ownerName: { x: 138, y: 512, w: 430, h: 12, fontSize: 9 },
+  // Ⅰ-1. 登記記録 (Y≈492/470)
+  registryDate: { x: 400, y: 510, w: 160, h: 12, fontSize: 8 },
+  ownerAddress: { x: 225, y: 492, w: 350, h: 14, fontSize: 9 },
+  ownerName: { x: 225, y: 470, w: 350, h: 14, fontSize: 9 },
 
-  // 甲区 ownership rights checkboxes
-  ownershipYes: { x: 222, y: 492, w: 12, h: 12, fontSize: 10 },
-  ownershipNo: { x: 260, y: 492, w: 12, h: 12, fontSize: 10 },
-  ownershipDetail: { x: 138, y: 474, w: 430, h: 24, fontSize: 8 },
+  // 甲区 ownership rights checkboxes (Y≈438)
+  ownershipYes: { x: 175, y: 438, w: 12, h: 12, fontSize: 10 },
+  ownershipNo: { x: 210, y: 438, w: 12, h: 12, fontSize: 10 },
+  ownershipDetail: { x: 240, y: 420, w: 330, h: 20, fontSize: 8 },
 
-  // 乙区 other rights
-  otherRightsYes: { x: 222, y: 440, w: 12, h: 12, fontSize: 10 },
-  otherRightsNo: { x: 260, y: 440, w: 12, h: 12, fontSize: 10 },
-  otherRightsDetail: { x: 100, y: 418, w: 470, h: 36, fontSize: 7 },
+  // 乙区 other rights (Y≈395)
+  otherRightsYes: { x: 175, y: 395, w: 12, h: 12, fontSize: 10 },
+  otherRightsNo: { x: 210, y: 395, w: 12, h: 12, fontSize: 10 },
+  otherRightsDetail: { x: 240, y: 378, w: 330, h: 40, fontSize: 7 },
 
-  // Ⅰ-2. 法令制限
-  legalRestrictions: { x: 100, y: 350, w: 470, h: 24, fontSize: 8 },
+  // Ⅰ-2. 法令制限 (Y≈272)
+  legalRestrictions: { x: 56, y: 272, w: 510, h: 30, fontSize: 8 },
 
-  // Ⅰ-3. インフラ - 飲用水
-  waterAvailYes: { x: 225, y: 288, w: 12, h: 12, fontSize: 10 },
-  waterAvailNo: { x: 192, y: 288, w: 12, h: 12, fontSize: 10 },
-  waterProvider: { x: 280, y: 300, w: 120, h: 12, fontSize: 8 },
+  // Ⅰ-3. インフラ - 飲用水 (Y≈148)
+  waterAvailNo: { x: 175, y: 148, w: 12, h: 12, fontSize: 10 },
+  waterAvailYes: { x: 210, y: 148, w: 12, h: 12, fontSize: 10 },
+  waterProvider: { x: 280, y: 148, w: 120, h: 12, fontSize: 8 },
 
-  // 電気
-  electricAvailYes: { x: 225, y: 248, w: 12, h: 12, fontSize: 10 },
-  electricAvailNo: { x: 192, y: 248, w: 12, h: 12, fontSize: 10 },
-  electricProvider: { x: 280, y: 260, w: 120, h: 12, fontSize: 8 },
+  // 電気 (Y≈88)
+  electricAvailNo: { x: 175, y: 88, w: 12, h: 12, fontSize: 10 },
+  electricAvailYes: { x: 210, y: 88, w: 12, h: 12, fontSize: 10 },
+  electricProvider: { x: 280, y: 88, w: 120, h: 12, fontSize: 8 },
 };
 
 // Page 4: Gas, drainage, building inspection, equipment table
+// Y values confirmed via grid ruler
 export const PAGE4 = {
-  // ③ガス
-  gasAvailYes: { x: 225, y: 795, w: 12, h: 12, fontSize: 10 },
-  gasAvailNo: { x: 192, y: 795, w: 12, h: 12, fontSize: 10 },
-  gasType: { x: 280, y: 805, w: 120, h: 12, fontSize: 8 },
+  // ③ガス (Y≈790)
+  gasAvailNo: { x: 175, y: 790, w: 12, h: 12, fontSize: 10 },
+  gasAvailYes: { x: 210, y: 790, w: 12, h: 12, fontSize: 10 },
+  gasType: { x: 120, y: 790, w: 50, h: 12, fontSize: 8 },
 
-  // ④排水
-  drainageAvailYes: { x: 225, y: 755, w: 12, h: 12, fontSize: 10 },
-  drainageAvailNo: { x: 192, y: 755, w: 12, h: 12, fontSize: 10 },
-  drainageType: { x: 280, y: 765, w: 120, h: 12, fontSize: 8 },
+  // ④排水 (Y≈680)
+  drainageAvailNo: { x: 175, y: 680, w: 12, h: 12, fontSize: 10 },
+  drainageAvailYes: { x: 210, y: 680, w: 12, h: 12, fontSize: 10 },
+  drainageType: { x: 120, y: 680, w: 50, h: 12, fontSize: 8 },
 
-  // Ⅰ-6. 設備 - equipment table
-  // Each equipment item: checkbox area for 有/無
-  // The equipment table starts around y=620 and goes down
-  // Row height approximately 18-20px each
-  equipmentStartY: 620,
-  equipmentRowHeight: 18,
-  equipmentYesX: 225,
-  equipmentNoX: 268,
-  equipmentDetailX: 320,
-  equipmentDetailW: 250,
+  // Ⅰ-6. 設備 - equipment table (first row at Y≈430, row height ~30)
+  equipmentStartY: 430,
+  equipmentRowHeight: 26,
+  equipmentYesX: 175,
+  equipmentNoX: 210,
+  equipmentDetailX: 400,
+  equipmentDetailW: 160,
 };
 
 // Page 5: Common facilities, hazard zones, hazard map, asbestos, earthquake
+// Image 2x coords converted: PDF_x = img_x/2, PDF_y = 842 - img_y/2
 export const PAGE5 = {
-  // 共用設備 section starts near top
-  commonFacilityStartY: 780,
-  commonFacilityRowHeight: 22,
-  commonYesX: 225,
-  commonNoX: 268,
-  commonDetailX: 320,
-  commonDetailW: 250,
+  // 共用設備: first row img y=274, row height 32px → PDF startY=842-137=705, rowH=16
+  commonFacilityStartY: 705,
+  commonFacilityRowHeight: 16,
+  commonYesX: 116,     // img 232/2
+  commonNoX: 145,      // img 290/2
+  commonDetailX: 550,  // img 1100/2 (備考)
+  commonDetailW: 45,
 
-  // 7. 造成宅地防災区域
-  hazardZoneOutside: { x: 440, y: 490, w: 12, h: 12, fontSize: 10 },
-  hazardZoneInside: { x: 478, y: 490, w: 12, h: 12, fontSize: 10 },
+  // 7. 造成宅地防災区域 (img: 外x=548,内x=612, y=660)
+  hazardZoneOutside: { x: 274, y: 512, w: 12, h: 12, fontSize: 10 },
+  hazardZoneInside: { x: 306, y: 512, w: 12, h: 12, fontSize: 10 },
 
-  // 8. 土砂災害
-  landslideWarningOutside: { x: 440, y: 452, w: 12, h: 12, fontSize: 10 },
-  landslideWarningInside: { x: 478, y: 452, w: 12, h: 12, fontSize: 10 },
-  landslideSpecialOutside: { x: 440, y: 434, w: 12, h: 12, fontSize: 10 },
-  landslideSpecialInside: { x: 478, y: 434, w: 12, h: 12, fontSize: 10 },
+  // 8. 土砂災害 (img y=730, 758)
+  landslideWarningOutside: { x: 274, y: 477, w: 12, h: 12, fontSize: 10 },
+  landslideWarningInside: { x: 306, y: 477, w: 12, h: 12, fontSize: 10 },
+  landslideSpecialOutside: { x: 274, y: 463, w: 12, h: 12, fontSize: 10 },
+  landslideSpecialInside: { x: 306, y: 463, w: 12, h: 12, fontSize: 10 },
 
-  // 9. 津波
-  tsunamiWarningOutside: { x: 440, y: 398, w: 12, h: 12, fontSize: 10 },
-  tsunamiWarningInside: { x: 478, y: 398, w: 12, h: 12, fontSize: 10 },
-  tsunamiSpecialOutside: { x: 440, y: 380, w: 12, h: 12, fontSize: 10 },
-  tsunamiSpecialInside: { x: 478, y: 380, w: 12, h: 12, fontSize: 10 },
+  // 9. 津波 (img y=826, 854)
+  tsunamiWarningOutside: { x: 274, y: 429, w: 12, h: 12, fontSize: 10 },
+  tsunamiWarningInside: { x: 306, y: 429, w: 12, h: 12, fontSize: 10 },
+  tsunamiSpecialOutside: { x: 274, y: 415, w: 12, h: 12, fontSize: 10 },
+  tsunamiSpecialInside: { x: 306, y: 415, w: 12, h: 12, fontSize: 10 },
 
-  // 10. ハザードマップ
-  floodYes: { x: 254, y: 334, w: 12, h: 12, fontSize: 10 },
-  floodNo: { x: 280, y: 334, w: 12, h: 12, fontSize: 10 },
-  stormWaterYes: { x: 370, y: 334, w: 12, h: 12, fontSize: 10 },
-  stormWaterNo: { x: 396, y: 334, w: 12, h: 12, fontSize: 10 },
-  stormSurgeYes: { x: 480, y: 334, w: 12, h: 12, fontSize: 10 },
-  stormSurgeNo: { x: 506, y: 334, w: 12, h: 12, fontSize: 10 },
-  hazardMapDetail: { x: 100, y: 310, w: 470, h: 24, fontSize: 8 },
+  // 10. ハザードマップ (img y=922)
+  floodYes: { x: 195, y: 381, w: 12, h: 12, fontSize: 10 },
+  floodNo: { x: 219, y: 381, w: 12, h: 12, fontSize: 10 },
+  stormWaterYes: { x: 300, y: 381, w: 12, h: 12, fontSize: 10 },
+  stormWaterNo: { x: 324, y: 381, w: 12, h: 12, fontSize: 10 },
+  stormSurgeYes: { x: 395, y: 381, w: 12, h: 12, fontSize: 10 },
+  stormSurgeNo: { x: 419, y: 381, w: 12, h: 12, fontSize: 10 },
+  hazardMapDetail: { x: 31, y: 360, w: 533, h: 24, fontSize: 8 },
 
-  // 11. 石綿
-  asbestosRecordYes: { x: 102, y: 240, w: 12, h: 12, fontSize: 10 },
-  asbestosRecordNo: { x: 102, y: 222, w: 12, h: 12, fontSize: 10 },
+  // 11. 石綿 (img: 有y=1062, 無y=1094 → PDF: 311, 295)
+  asbestosRecordYes: { x: 74, y: 311, w: 12, h: 12, fontSize: 10 },
+  asbestosRecordNo: { x: 74, y: 295, w: 12, h: 12, fontSize: 10 },
 
-  // 12. 耐震
-  earthquakeApplicable: { x: 192, y: 168, w: 12, h: 12, fontSize: 10 },
-  earthquakeNotApplicable: { x: 310, y: 168, w: 12, h: 12, fontSize: 10 },
-  earthquakeDiagYes: { x: 140, y: 148, w: 12, h: 12, fontSize: 10 },
-  earthquakeDiagNo: { x: 178, y: 148, w: 12, h: 12, fontSize: 10 },
+  // 12. 耐震 (img: 該当するx=262,y=1272 → PDF: 131,206; 該当しないx=332 → 166)
+  earthquakeApplicable: { x: 131, y: 206, w: 12, h: 12, fontSize: 10 },
+  earthquakeNotApplicable: { x: 166, y: 206, w: 12, h: 12, fontSize: 10 },
+  earthquakeDiagYes: { x: 84, y: 191, w: 12, h: 12, fontSize: 10 },
+  earthquakeDiagNo: { x: 109, y: 191, w: 12, h: 12, fontSize: 10 },
 };
 
 // Page 6: Financial, cancellation, penalty, security measure
+// Y values confirmed via grid ruler
 export const PAGE6 = {
-  // Ⅱ-1. 賃料等
-  rent: { x: 252, y: 690, w: 100, h: 12, fontSize: 9 },
-  managementFee: { x: 252, y: 670, w: 100, h: 12, fontSize: 9 },
-  deposit: { x: 252, y: 650, w: 100, h: 12, fontSize: 9 },
-  keyMoney: { x: 252, y: 630, w: 100, h: 12, fontSize: 9 },
-  otherFee1Name: { x: 70, y: 610, w: 170, h: 12, fontSize: 8 },
-  otherFee1Amount: { x: 252, y: 610, w: 100, h: 12, fontSize: 9 },
-  otherFee2Name: { x: 70, y: 592, w: 170, h: 12, fontSize: 8 },
-  otherFee2Amount: { x: 252, y: 592, w: 100, h: 12, fontSize: 9 },
-  otherFee3Name: { x: 70, y: 574, w: 170, h: 12, fontSize: 8 },
-  otherFee3Amount: { x: 252, y: 574, w: 100, h: 12, fontSize: 9 },
+  // Ⅱ-1. 賃料等 (rent=668, mgmt=643, deposit=618, keyMoney=593, other=568)
+  rent: { x: 350, y: 668, w: 120, h: 14, fontSize: 9 },
+  managementFee: { x: 350, y: 643, w: 120, h: 14, fontSize: 9 },
+  deposit: { x: 350, y: 618, w: 120, h: 14, fontSize: 9 },
+  keyMoney: { x: 350, y: 593, w: 120, h: 14, fontSize: 9 },
+  otherFee1Name: { x: 56, y: 568, w: 290, h: 14, fontSize: 8 },
+  otherFee1Amount: { x: 350, y: 568, w: 120, h: 14, fontSize: 9 },
+  otherFee2Name: { x: 56, y: 543, w: 290, h: 14, fontSize: 8 },
+  otherFee2Amount: { x: 350, y: 543, w: 120, h: 14, fontSize: 9 },
+  otherFee3Name: { x: 56, y: 518, w: 290, h: 14, fontSize: 8 },
+  otherFee3Amount: { x: 350, y: 518, w: 120, h: 14, fontSize: 9 },
 
-  paymentDeadline: { x: 170, y: 548, w: 200, h: 12, fontSize: 8 },
-  paymentMethod: { x: 400, y: 548, w: 160, h: 12, fontSize: 8 },
-  bankInfo: { x: 70, y: 528, w: 500, h: 12, fontSize: 8 },
+  paymentDeadline: { x: 56, y: 500, w: 200, h: 14, fontSize: 8 },
+  paymentMethod: { x: 300, y: 500, w: 150, h: 14, fontSize: 8 },
+  bankInfo: { x: 56, y: 472, w: 510, h: 28, fontSize: 7, maxWidth: 510 },
 
-  // Ⅱ-3. 違約金
-  penaltyNo: { x: 70, y: 172, w: 12, h: 12, fontSize: 10 },
-  penaltyYes: { x: 108, y: 172, w: 12, h: 12, fontSize: 10 },
-  penaltyDetail: { x: 148, y: 172, w: 420, h: 24, fontSize: 7 },
+  // Ⅱ-3. 違約金 (Y≈130)
+  penaltyNo: { x: 100, y: 130, w: 12, h: 12, fontSize: 10 },
+  penaltyYes: { x: 140, y: 130, w: 12, h: 12, fontSize: 10 },
+  penaltyDetail: { x: 170, y: 130, w: 400, h: 24, fontSize: 7 },
 
-  // Ⅱ-4. 保全措置
-  securityYes: { x: 200, y: 108, w: 12, h: 12, fontSize: 10 },
-  securityNo: { x: 300, y: 108, w: 12, h: 12, fontSize: 10 },
+  // Ⅱ-4. 保全措置 (Y≈72)
+  securityYes: { x: 200, y: 72, w: 12, h: 12, fontSize: 10 },
+  securityNo: { x: 280, y: 72, w: 12, h: 12, fontSize: 10 },
 };
 
 // Page 7: Contract period, usage restrictions, deposit settlement
+// Y values confirmed via grid ruler
 export const PAGE7 = {
   // Ⅱ-5. 契約期間
-  contractType: { x: 192, y: 805, w: 300, h: 12, fontSize: 9 },
-  contractStart: { x: 192, y: 785, w: 200, h: 12, fontSize: 9 },
-  contractEnd: { x: 192, y: 765, w: 200, h: 12, fontSize: 9 },
-  contractPeriod: { x: 430, y: 765, w: 40, h: 12, fontSize: 9 },
+  contractType: { x: 200, y: 750, w: 300, h: 14, fontSize: 9 },
+  contractStart: { x: 200, y: 730, w: 200, h: 14, fontSize: 9 },
+  contractEnd: { x: 200, y: 718, w: 200, h: 14, fontSize: 9 },
+  contractPeriod: { x: 430, y: 718, w: 50, h: 14, fontSize: 9 },
 
-  // 更新料
-  renewalFeeYes: { x: 310, y: 720, w: 12, h: 12, fontSize: 10 },
-  renewalFeeNo: { x: 348, y: 720, w: 12, h: 12, fontSize: 10 },
-  renewalFeeAmount: { x: 370, y: 700, w: 150, h: 12, fontSize: 9 },
-  renewalAdminFee: { x: 100, y: 678, w: 300, h: 12, fontSize: 9 },
+  // 更新料 (Y≈660)
+  renewalFeeYes: { x: 300, y: 660, w: 12, h: 12, fontSize: 10 },
+  renewalFeeNo: { x: 340, y: 660, w: 12, h: 12, fontSize: 10 },
+  renewalFeeAmount: { x: 200, y: 640, w: 300, h: 30, fontSize: 8 },
+  renewalAdminFee: { x: 56, y: 610, w: 300, h: 14, fontSize: 9 },
 
   // Ⅱ-6. 用途制限
-  usagePurpose: { x: 280, y: 640, w: 250, h: 12, fontSize: 8 },
-  petPolicy: { x: 280, y: 620, w: 250, h: 12, fontSize: 8 },
-  instrumentPolicy: { x: 280, y: 600, w: 250, h: 24, fontSize: 7 },
-  renovationPolicy: { x: 280, y: 574, w: 250, h: 24, fontSize: 7 },
+  usagePurpose: { x: 200, y: 555, w: 350, h: 14, fontSize: 8 },
+  petPolicy: { x: 200, y: 530, w: 350, h: 14, fontSize: 8 },
+  instrumentPolicy: { x: 200, y: 505, w: 350, h: 24, fontSize: 7 },
+  renovationPolicy: { x: 200, y: 478, w: 350, h: 30, fontSize: 7 },
 
-  // Ⅱ-7. 敷金精算 - this is mostly pre-printed text
-  // The deposit amount field
-  depositSettlementAmount: { x: 160, y: 480, w: 120, h: 12, fontSize: 9 },
+  // Ⅱ-7. 敷金精算
+  depositSettlementAmount: { x: 200, y: 400, w: 150, h: 14, fontSize: 9 },
 };
 
 // Page 8: Management, other matters, attachments, remarks
+// Y values confirmed via grid ruler
 export const PAGE8 = {
-  // Ⅱ-8. 管理委託先
-  buildingManagerName: { x: 192, y: 740, w: 200, h: 12, fontSize: 8 },
-  buildingManagerAddress: { x: 192, y: 722, w: 200, h: 12, fontSize: 7 },
-  buildingManagerPhone: { x: 192, y: 704, w: 200, h: 12, fontSize: 8 },
+  // Ⅱ-8. 管理委託先 - 建物管理 (name=722, address=700)
+  buildingManagerName: { x: 175, y: 722, w: 200, h: 14, fontSize: 8 },
+  buildingManagerAddress: { x: 175, y: 700, w: 200, h: 14, fontSize: 7 },
+  buildingManagerPhone: { x: 420, y: 722, w: 150, h: 14, fontSize: 8 },
 
-  propertyManagerName: { x: 192, y: 670, w: 200, h: 12, fontSize: 8 },
-  propertyManagerAddress: { x: 192, y: 652, w: 200, h: 12, fontSize: 7 },
-  propertyManagerPhone: { x: 192, y: 634, w: 200, h: 12, fontSize: 8 },
+  // 家賃管理 (name=642, address=622)
+  propertyManagerName: { x: 175, y: 642, w: 200, h: 14, fontSize: 8 },
+  propertyManagerAddress: { x: 175, y: 622, w: 200, h: 14, fontSize: 7 },
+  propertyManagerPhone: { x: 420, y: 642, w: 150, h: 14, fontSize: 8 },
 
-  // Ⅲ. その他重要事項
-  otherMatters: { x: 50, y: 570, w: 510, h: 80, fontSize: 7 },
+  // Ⅲ. その他重要事項 (Y≈455)
+  otherMatters: { x: 56, y: 455, w: 510, h: 40, fontSize: 7 },
 
-  // Ⅳ. 添付書類
-  attachments: { x: 50, y: 450, w: 510, h: 50, fontSize: 8 },
+  // Ⅳ. 添付書類 (Y≈428)
+  attachments: { x: 56, y: 428, w: 510, h: 30, fontSize: 8 },
 
-  // Ⅴ. 備考
-  remarks: { x: 50, y: 360, w: 510, h: 80, fontSize: 7 },
+  // Ⅴ. 備考 (Y≈390)
+  remarks: { x: 56, y: 390, w: 510, h: 40, fontSize: 7 },
 };

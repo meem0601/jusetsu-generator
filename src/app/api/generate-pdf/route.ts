@@ -32,12 +32,16 @@ function clearAndWrite(
   const size = coord.fontSize || 8;
 
   if (!opts?.noWhite) {
-    // White rectangle to cover existing text
+    // White rectangle to cover existing text - very generous to cover all old template data
+    const clearH = Math.max(coord.h || 14, size + 6) + 10;
+    // Extend 10pt to the left and add 20pt total width padding to catch wider old text
+    const clearX = Math.max(coord.x - 10, 0);
+    const clearW = coord.w + 20 + (coord.x - clearX);
     page.drawRectangle({
-      x: coord.x - 1,
-      y: coord.y - 3,
-      width: coord.w + 2,
-      height: coord.h + 4,
+      x: clearX,
+      y: coord.y - 6,
+      width: Math.min(clearW, 580 - clearX), // Don't exceed page width
+      height: clearH,
       color: WHITE,
     });
   }
@@ -90,20 +94,22 @@ function wrapText(font: PDFFont, text: string, size: number, maxWidth: number): 
   return lines;
 }
 
-// Draw a checkmark (✓)
-function drawCheck(page: PDFPage, font: PDFFont, coord: FieldCoord) {
-  page.drawRectangle({
-    x: coord.x - 1,
-    y: coord.y - 3,
-    width: coord.w + 2,
-    height: coord.h + 4,
-    color: WHITE,
+// Draw a checkmark using line drawing (cross-platform safe)
+function drawCheck(page: PDFPage, _font: PDFFont, coord: FieldCoord) {
+  const size = coord.fontSize || 10;
+  const cx = coord.x + 2;
+  const cy = coord.y + 2;
+  // Draw a simple "✓" shape with lines
+  page.drawLine({
+    start: { x: cx, y: cy + size * 0.3 },
+    end: { x: cx + size * 0.3, y: cy },
+    thickness: 1.5,
+    color: BLACK,
   });
-  page.drawText("✓", {
-    x: coord.x,
-    y: coord.y,
-    size: coord.fontSize || 10,
-    font,
+  page.drawLine({
+    start: { x: cx + size * 0.3, y: cy },
+    end: { x: cx + size * 0.8, y: cy + size * 0.7 },
+    thickness: 1.5,
     color: BLACK,
   });
 }
@@ -146,6 +152,18 @@ function formatCurrency(amount: number): string {
   return amount.toLocaleString() + "円";
 }
 
+// Clear a horizontal band across the content area of a page
+// Used to wipe template sample data before writing new values
+function clearBand(page: PDFPage, y: number, height: number, xStart = 55, xEnd = 575) {
+  page.drawRectangle({
+    x: xStart,
+    y: y - 2,
+    width: xEnd - xStart,
+    height: height + 4,
+    color: WHITE,
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const data: JusetsuData = await request.json();
@@ -164,14 +182,15 @@ export async function POST(request: NextRequest) {
       if (!templateRes.ok) throw new Error("テンプレートPDFの取得に失敗しました");
       templateBytes = Buffer.from(await templateRes.arrayBuffer());
     }
-    const pdfDoc = await PDFDocument.load(templateBytes);
+    const pdfDoc = await PDFDocument.load(templateBytes, { updateMetadata: false });
 
     // Embed Japanese font - try local file first, then fetch
     pdfDoc.registerFontkit(fontkit);
     let fontBytes: ArrayBuffer;
     const fontPath = join(process.cwd(), "public", "NotoSansJP-Regular.ttf");
     if (existsSync(fontPath)) {
-      fontBytes = readFileSync(fontPath).buffer as ArrayBuffer;
+      const buf = readFileSync(fontPath);
+      fontBytes = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
     } else {
       // Vercel: fetch from public URL or Google Fonts
       const baseUrl = process.env.VERCEL_URL
@@ -190,25 +209,20 @@ export async function POST(request: NextRequest) {
     // === PAGE 1: Header, brokers, officers, guarantee association ===
     const page1 = pdfDoc.getPage(0);
 
-    // Borrower/Lender names
-    clearAndWrite(page1, font, PAGE1.borrowerName, data.borrowerName || "");
-    clearAndWrite(page1, font, PAGE1.lenderName, data.lenderName || "");
+    // Clear the borrower/lender name band (Y≈740, covers the "借主...様に対し、貸主...様" line)
+    clearBand(page1, 734, 20, 100, 575);  // entire header line
+    clearAndWrite(page1, font, PAGE1.borrowerName, data.borrowerName || "", { noWhite: true });
+    clearAndWrite(page1, font, PAGE1.lenderName, data.lenderName || "", { noWhite: true });
 
-    // Transaction type checkmarks
-    if (data.transactionType === "媒介") {
-      drawCheck(page1, font, PAGE1.transactionTypeLeftMediation);
-    } else if (data.transactionType === "代理") {
+    // Transaction type - already in template, skip unless non-default
+    // Template has "媒介" pre-printed, so only draw if different
+    if (data.transactionType === "代理") {
       drawCheck(page1, font, PAGE1.transactionTypeLeftAgent);
     }
 
-    // Broker 1 (left)
-    clearAndWrite(page1, font, PAGE1.broker1License, data.broker1?.licenseNumber || "");
-    clearAndWrite(page1, font, PAGE1.broker1Address, data.broker1?.officeAddress || "");
-    clearAndWrite(page1, font, PAGE1.broker1Phone, data.broker1?.phone || "");
-    clearAndWrite(page1, font, PAGE1.broker1Name, data.broker1?.companyName || "");
-    clearAndWrite(page1, font, PAGE1.broker1Rep, data.broker1?.representative || "");
+    // Broker 1 (left) - MEEM fixed info already in template, DO NOT overwrite
 
-    // Broker 2 (right) - only if has data
+    // Broker 2 (right) - only if has data (not in template)
     if (data.broker2?.companyName) {
       clearAndWrite(page1, font, PAGE1.broker2License, data.broker2.licenseNumber || "");
       clearAndWrite(page1, font, PAGE1.broker2Address, data.broker2.officeAddress || "");
@@ -217,14 +231,9 @@ export async function POST(request: NextRequest) {
       clearAndWrite(page1, font, PAGE1.broker2Rep, data.broker2.representative || "");
     }
 
-    // Trading Officer 1
-    clearAndWrite(page1, font, PAGE1.officer1RegNumber, data.tradingOfficer1?.registrationNumber || "");
-    clearAndWrite(page1, font, PAGE1.officer1Name, data.tradingOfficer1?.name || "");
-    clearAndWrite(page1, font, PAGE1.officer1OfficeName, data.tradingOfficer1?.officeName || "");
-    clearAndWrite(page1, font, PAGE1.officer1OfficeAddress, data.tradingOfficer1?.officeAddress || "");
-    clearAndWrite(page1, font, PAGE1.officer1Phone, data.tradingOfficer1?.phone || "");
+    // Trading Officer 1 - MEEM fixed info already in template, DO NOT overwrite
 
-    // Trading Officer 2
+    // Trading Officer 2 - only if has data (not in template)
     if (data.tradingOfficer2?.name) {
       clearAndWrite(page1, font, PAGE1.officer2RegNumber, data.tradingOfficer2.registrationNumber || "");
       clearAndWrite(page1, font, PAGE1.officer2Name, data.tradingOfficer2.name || "");
@@ -233,26 +242,30 @@ export async function POST(request: NextRequest) {
       clearAndWrite(page1, font, PAGE1.officer2Phone, data.tradingOfficer2.phone || "");
     }
 
-    // Guarantee Association
-    if (data.guaranteeAssociation?.name) {
-      drawCheck(page1, font, PAGE1.guaranteeCheckLeft);
-      clearAndWrite(page1, font, PAGE1.guaranteeName, data.guaranteeAssociation.name || "");
-      clearAndWrite(page1, font, PAGE1.guaranteeAddress, data.guaranteeAssociation.address || "");
-      clearAndWrite(page1, font, PAGE1.localBranchName, data.guaranteeAssociation.localBranch || "");
-      clearAndWrite(page1, font, PAGE1.localBranchAddress, data.guaranteeAssociation.localBranchAddress || "");
-      clearAndWrite(page1, font, PAGE1.depositOffice, data.guaranteeAssociation.depositOffice || "");
-      clearAndWrite(page1, font, PAGE1.depositOfficeAddress, data.guaranteeAssociation.depositOfficeAddress || "");
-    }
+    // Guarantee Association - MEEM fixed info already in template, DO NOT overwrite
 
     // === PAGE 2: Table of contents - skip (no editable fields) ===
 
     // === PAGE 3: Building, landlord, registry, legal, infrastructure ===
     const page3 = pdfDoc.getPage(2);
 
+    // Clear entire building section (A) data area - rows at Y=772,750,728,706,684,662,640
+    // Clear from value column start (x≈100) to right edge, leaving labels intact
+    clearBand(page3, 636, 150, 100, 575);  // Building section A: covers Y 636-786
+
+    // Clear landlord section (B) data area
+    clearBand(page3, 550, 60, 100, 575);   // Landlord section: covers Y 550-610
+
+    // Clear registry section (owner address/name + 甲区/乙区)
+    clearBand(page3, 365, 155, 56, 575);  // Registry: covers Y 365-520, wider left margin
+
+    // Clear legal restrictions value area
+    clearBand(page3, 268, 30, 56, 575);    // Legal restrictions: covers Y 268-298
+
     // Building info
-    clearAndWrite(page3, font, PAGE3.buildingName, data.building?.name || "");
-    clearAndWrite(page3, font, PAGE3.addressDisplay, data.building?.addressDisplay || "");
-    clearAndWrite(page3, font, PAGE3.addressRegistry, data.building?.addressRegistry || "");
+    clearAndWrite(page3, font, PAGE3.buildingName, data.building?.name || "", { noWhite: true });
+    clearAndWrite(page3, font, PAGE3.addressDisplay, data.building?.addressDisplay || "", { noWhite: true });
+    clearAndWrite(page3, font, PAGE3.addressRegistry, data.building?.addressRegistry || "", { noWhite: true });
 
     // Building type checkboxes
     const typeMap: Record<string, FieldCoord> = {
@@ -264,10 +277,10 @@ export async function POST(request: NextRequest) {
     const typeCoord = typeMap[data.building?.type || ""];
     if (typeCoord) drawCheck(page3, font, typeCoord);
 
-    clearAndWrite(page3, font, PAGE3.structure, data.building?.structure || "");
-    clearAndWrite(page3, font, PAGE3.floorArea, data.building?.floorArea || "");
-    clearAndWrite(page3, font, PAGE3.layout, data.building?.layout || "");
-    clearAndWrite(page3, font, PAGE3.builtDate, data.building?.builtDate || "");
+    clearAndWrite(page3, font, PAGE3.structure, data.building?.structure || "", { noWhite: true });
+    clearAndWrite(page3, font, PAGE3.floorArea, data.building?.floorArea || "", { noWhite: true });
+    clearAndWrite(page3, font, PAGE3.layout, data.building?.layout || "", { noWhite: true });
+    clearAndWrite(page3, font, PAGE3.builtDate, data.building?.builtDate || "", { noWhite: true });
 
     // Landlord
     if (data.landlord?.sameAsOwner) {
@@ -275,15 +288,15 @@ export async function POST(request: NextRequest) {
     } else {
       drawCheck(page3, font, PAGE3.landlordDiffCheck);
     }
-    clearAndWrite(page3, font, PAGE3.landlordAddress, data.landlord?.address || "");
-    clearAndWrite(page3, font, PAGE3.landlordName, data.landlord?.name || "");
+    clearAndWrite(page3, font, PAGE3.landlordAddress, data.landlord?.address || "", { noWhite: true });
+    clearAndWrite(page3, font, PAGE3.landlordName, data.landlord?.name || "", { noWhite: true });
     if (data.landlord?.remarks) {
       drawMultilineText(page3, font, PAGE3.landlordRemarks, data.landlord.remarks);
     }
 
     // Registry
-    clearAndWrite(page3, font, PAGE3.ownerAddress, data.registry?.ownerAddress || "");
-    clearAndWrite(page3, font, PAGE3.ownerName, data.registry?.ownerName || "");
+    clearAndWrite(page3, font, PAGE3.ownerAddress, data.registry?.ownerAddress || "", { noWhite: true });
+    clearAndWrite(page3, font, PAGE3.ownerName, data.registry?.ownerName || "", { noWhite: true });
 
     if (data.registry?.ownershipRights) {
       drawCheck(page3, font, PAGE3.ownershipYes);
@@ -450,6 +463,11 @@ export async function POST(request: NextRequest) {
     // === PAGE 6: Financials, cancellation, penalty, security ===
     const page6 = pdfDoc.getPage(5);
 
+    // Clear financial section data area (Y 465-680)
+    clearBand(page6, 465, 220, 56, 575);
+    // Clear penalty area (Y 120-145)
+    clearBand(page6, 120, 30, 56, 575);
+
     if (data.financials?.rent) {
       clearAndWrite(page6, font, PAGE6.rent, formatCurrency(data.financials.rent));
     }
@@ -508,6 +526,10 @@ export async function POST(request: NextRequest) {
     // === PAGE 7: Contract period, usage restrictions ===
     const page7 = pdfDoc.getPage(6);
 
+    // Clear contract and usage restriction data areas
+    clearBand(page7, 600, 160, 100, 575);  // Contract section Y 600-760
+    clearBand(page7, 470, 100, 100, 575);  // Usage restrictions Y 470-570
+
     if (data.contract?.type) {
       clearAndWrite(page7, font, PAGE7.contractType, data.contract.type);
     }
@@ -547,6 +569,10 @@ export async function POST(request: NextRequest) {
     // === PAGE 8: Management, other matters, attachments, remarks ===
     const page8 = pdfDoc.getPage(7);
 
+    // Clear management and notes data areas
+    clearBand(page8, 615, 120, 100, 575);  // Management section Y 615-735
+    clearBand(page8, 380, 90, 56, 575);    // Other matters, attachments, remarks Y 380-470
+
     // Building manager
     if (data.management?.buildingManager?.name) {
       clearAndWrite(page8, font, PAGE8.buildingManagerName, data.management.buildingManager.name);
@@ -581,7 +607,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(Buffer.from(pdfBytes), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="重要事項説明書.pdf"`,
+        "Content-Disposition": `attachment; filename="jusetsu.pdf"; filename*=UTF-8''${encodeURIComponent("重要事項説明書.pdf")}`,
       },
     });
   } catch (error) {
