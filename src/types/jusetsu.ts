@@ -70,6 +70,24 @@ export interface JusetsuData {
   renewalProcedure: string;
   otherSpecialTerms: string;
 
+  // 物件追加情報
+  builtDate: string;
+  stories: string;
+  floor: string;
+
+  // 借主情報
+  tenantName: string;
+  tenantAddress: string;
+
+  // 支払い情報
+  paymentDeadline: string;
+  paymentMethod: string;
+
+  // 仲介
+  brokerName: string;
+  brokerLicense: string;
+  tradingOfficerName: string;
+
   // 管理会社
   managementCompany: string;
   landlordName: string;
@@ -125,6 +143,16 @@ export const defaultJusetsuData: JusetsuData = {
   keyCount: "",
   renewalProcedure: "",
   otherSpecialTerms: "",
+  builtDate: "",
+  stories: "",
+  floor: "",
+  tenantName: "",
+  tenantAddress: "",
+  paymentDeadline: "",
+  paymentMethod: "",
+  brokerName: "",
+  brokerLicense: "",
+  tradingOfficerName: "",
   managementCompany: "",
   landlordName: "",
 };

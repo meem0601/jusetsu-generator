@@ -19,6 +19,9 @@ const sections = [
       { key: "layout", label: "間取り" },
       { key: "structure", label: "構造" },
       { key: "area", label: "専有面積" },
+      { key: "builtDate", label: "築年月" },
+      { key: "stories", label: "階建て数" },
+      { key: "floor", label: "所在階" },
     ],
   },
   {
@@ -59,6 +62,20 @@ const sections = [
       { key: "deposit", label: "敷金" },
       { key: "keyMoney", label: "礼金" },
       { key: "otherFees", label: "その他費用" },
+    ],
+  },
+  {
+    title: "👤 借主情報",
+    fields: [
+      { key: "tenantName", label: "借主（乙）氏名" },
+      { key: "tenantAddress", label: "借主住所" },
+    ],
+  },
+  {
+    title: "💳 支払い方法",
+    fields: [
+      { key: "paymentDeadline", label: "支払期限" },
+      { key: "paymentMethod", label: "支払方法（振込先等）" },
     ],
   },
   {
@@ -112,6 +129,14 @@ const sections = [
       { key: "otherSpecialTerms", label: "その他特約事項", textarea: true },
       { key: "managementCompany", label: "管理会社" },
       { key: "landlordName", label: "貸主" },
+    ],
+  },
+  {
+    title: "🏢 仲介業者",
+    fields: [
+      { key: "brokerName", label: "仲介業者名" },
+      { key: "brokerLicense", label: "宅建業者免許番号" },
+      { key: "tradingOfficerName", label: "宅地建物取引士" },
     ],
   },
 ] as const;

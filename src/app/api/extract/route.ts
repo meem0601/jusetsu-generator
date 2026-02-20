@@ -15,12 +15,15 @@ async function extractWithClaude(
 値が見つからない場合は空文字""にしてください。
 
 {
-  "propertyName": "物件名称",
-  "address": "所在地（住所）",
-  "roomNumber": "部屋番号",
+  "propertyName": "物件名称（マンション名・ビル名等）",
+  "address": "所在地（住所。都道府県から番地まで）",
+  "roomNumber": "部屋番号（号室）",
   "layout": "間取り（1LDK等）",
-  "structure": "構造（RC造等）",
-  "area": "専有面積（㎡）",
+  "structure": "構造（RC造・鉄骨造等）",
+  "area": "専有面積（㎡。数値+単位）",
+  "builtDate": "築年月（建物の建築年月。例: 2005年3月）",
+  "stories": "階建て数（例: 地上5階建て、地下1階地上10階建て）",
+  "floor": "所在階（部屋がある階。例: 3階）",
   "zoning": "用途地域",
   "water": "飲用水（公営水道等）",
   "electricity": "電気（○○電力等）",
@@ -31,14 +34,18 @@ async function extractWithClaude(
   "toilet": "トイレ設備",
   "aircon": "エアコン",
   "otherEquipment": "その他設備",
-  "rent": "賃料（月額）",
-  "managementFee": "管理費・共益費",
-  "deposit": "敷金",
-  "keyMoney": "礼金",
+  "rent": "月額賃料（例: 85,000円 → 85000。「税込」「税別」注記があれば含める）",
+  "managementFee": "管理費・共益費（金額。例: 5000）",
+  "deposit": "敷金（金額。「◯ヶ月」の場合は賃料×月数で計算）",
+  "keyMoney": "礼金（金額。「◯ヶ月」の場合は賃料×月数で計算）",
   "otherFees": "その他費用（仲介手数料、保証料等）",
-  "contractStart": "契約開始日",
-  "contractEnd": "契約終了日",
+  "contractStart": "契約開始日（西暦で。例: 2024年4月1日）",
+  "contractEnd": "契約終了日（西暦で。例: 2026年3月31日）",
   "renewalCondition": "更新条件",
+  "tenantName": "借主（乙）の氏名",
+  "tenantAddress": "借主（乙）の住所",
+  "paymentDeadline": "賃料支払期限（例: 毎月末日まで、翌月分を毎月27日まで等）",
+  "paymentMethod": "支払方法（振込先銀行名・支店名・口座番号等）",
   "earthquakeResistance": "耐震診断の有無と結果",
   "asbestos": "石綿使用調査の有無と結果",
   "cancellationTerms": "解約条件（解約予告期間等）",
@@ -59,6 +66,9 @@ async function extractWithClaude(
   "keyCount": "貸与鍵の本数・種類",
   "renewalProcedure": "更新手続き方法（更新料・手続き詳細）",
   "otherSpecialTerms": "その他特約事項（上記に該当しない特約を全て記載）",
+  "brokerName": "仲介業者名（宅建業者の商号）",
+  "brokerLicense": "宅地建物取引業者の免許番号（例: 東京都知事(3)第12345号）",
+  "tradingOfficerName": "宅地建物取引士の氏名",
   "managementCompany": "管理会社名",
   "landlordName": "貸主（甲）の名前"
 }
@@ -69,6 +79,12 @@ async function extractWithClaude(
 - 原状回復、火災保険、連帯保証人、駐車場、インターネット、禁止事項、鍵、更新手続き、クリーニング代、鍵交換代、短期解約違約金は必ず探す
 - 金額はカンマなしの数字。「税込」「税別」の注記があればそれも含める
 - 令和・平成の日付は西暦に変換
+
+**抽出精度を上げるための注意：**
+- 金額はカンマなしの数字で返す（例: 50000）。ただし「税込」「税別」等あればそれも含める
+- 敷金・礼金が「◯ヶ月」表記の場合、賃料×月数で計算した金額を返す
+- 令和・平成の日付は西暦に変換（例: 令和6年 → 2024年）
+- 契約書の全ページ（裏面・別紙含む）から情報を探す
 
 JSONのみ返してください。説明文は不要です。`
       : `この登記簿謄本PDFから以下の情報を抽出してJSON形式で返してください。

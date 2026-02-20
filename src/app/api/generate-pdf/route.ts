@@ -156,6 +156,9 @@ export async function POST(request: NextRequest) {
     drawField("間取り", data.layout);
     drawField("構造", data.structure);
     drawField("専有面積", data.area);
+    drawField("築年月", data.builtDate);
+    drawField("階建て", data.stories);
+    drawField("所在階", data.floor);
 
     drawSection("登記簿に記載された事項");
     drawField("所有者（甲区）", data.owner);
@@ -177,12 +180,20 @@ export async function POST(request: NextRequest) {
     drawField("エアコン", data.aircon);
     drawField("その他", data.otherEquipment);
 
+    drawSection("借主情報");
+    drawField("借主氏名", data.tenantName);
+    drawField("借主住所", data.tenantAddress);
+
     drawSection("賃料等");
     drawField("賃料", data.rent);
     drawField("管理費・共益費", data.managementFee);
     drawField("敷金", data.deposit);
     drawField("礼金", data.keyMoney);
     drawField("その他費用", data.otherFees);
+
+    drawSection("支払い方法");
+    drawField("支払期限", data.paymentDeadline);
+    drawField("支払方法", data.paymentMethod);
 
     drawSection("契約期間");
     drawField("開始日", data.contractStart);
@@ -223,6 +234,11 @@ export async function POST(request: NextRequest) {
     drawSection("管理・貸主");
     drawField("管理会社", data.managementCompany);
     drawField("貸主", data.landlordName);
+
+    drawSection("仲介業者");
+    drawField("仲介業者名", data.brokerName);
+    drawField("免許番号", data.brokerLicense);
+    drawField("取引士", data.tradingOfficerName);
 
     // Footer on last page
     currentY -= 30;
