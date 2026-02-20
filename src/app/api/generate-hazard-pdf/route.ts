@@ -14,6 +14,7 @@ interface HazardPdfRequest {
   tsunamiRisk: string;
 }
 
+
 const LEGENDS = {
   flood: [
     { color: [255, 255, 179] as const, label: "0.5m未満" },

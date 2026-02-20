@@ -28,7 +28,8 @@ export default function HazardMapStep({
   const hasImages = !!(data.floodMapImage || data.landslideMapImage || data.tsunamiMapImage);
 
   const handleFetchHazardMap = async () => {
-    if (!data.address) {
+    const address = data.building?.addressDisplay || data.building?.addressRegistry;
+    if (!address) {
       setError("住所が設定されていません。前のステップで住所を入力してください。");
       return;
     }
@@ -38,7 +39,7 @@ export default function HazardMapStep({
       const res = await fetch("/api/hazard-screenshot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: data.address }),
+        body: JSON.stringify({ address }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -66,11 +67,11 @@ export default function HazardMapStep({
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <h3 className="text-base font-bold text-gray-900 mb-2">対象住所</h3>
-        <p className="text-sm text-gray-700 mb-4">{data.address || "（住所未設定）"}</p>
+        <p className="text-sm text-gray-700 mb-4">{data.building?.addressDisplay || data.building?.addressRegistry || "（住所未設定）"}</p>
 
         <button
           onClick={handleFetchHazardMap}
-          disabled={fetching || !data.address}
+          disabled={fetching || !(data.building?.addressDisplay || data.building?.addressRegistry)}
           className="w-full py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {fetching ? "🔄 disaportalからハザードマップを取得中...（約60秒）" : "🗺️ ハザードマップを取得"}

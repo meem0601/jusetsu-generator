@@ -8,97 +8,163 @@ async function extractWithClaude(
   client: Anthropic,
   pdfBase64: string,
   docType: "contract" | "registry"
-): Promise<Partial<JusetsuData>> {
-  const prompt =
-    docType === "contract"
-      ? `この賃貸借契約書PDFから以下の情報を抽出してJSON形式で返してください。
-値が見つからない場合は空文字""にしてください。
+): Promise<Record<string, unknown>> {
+  const contractPrompt = `この賃貸借契約書PDFから以下のJSON構造で情報を抽出してください。
+値が見つからない場合はデフォルト値（文字列なら""、数値なら0、booleanならfalse）にしてください。
 
 {
-  "propertyName": "物件名称（マンション名・ビル名等）",
-  "address": "所在地（住所。都道府県から番地まで）",
-  "roomNumber": "部屋番号（号室）",
-  "layout": "間取り（1LDK等）",
-  "structure": "構造（RC造・鉄骨造等）",
-  "area": "専有面積（㎡。数値+単位）",
-  "builtDate": "築年月（建物の建築年月。例: 2005年3月）",
-  "stories": "階建て数（例: 地上5階建て、地下1階地上10階建て）",
-  "floor": "所在階（部屋がある階。例: 3階）",
-  "zoning": "用途地域",
-  "water": "飲用水（公営水道等）",
-  "electricity": "電気（○○電力等）",
-  "gas": "ガス（都市ガス/プロパン等）",
-  "drainage": "排水（公共下水等）",
-  "kitchen": "台所設備",
-  "bathroom": "浴室設備",
-  "toilet": "トイレ設備",
-  "aircon": "エアコン",
-  "otherEquipment": "その他設備",
-  "rent": "月額賃料（例: 85,000円 → 85000。「税込」「税別」注記があれば含める）",
-  "managementFee": "管理費・共益費（金額。例: 5000）",
-  "deposit": "敷金（金額。「◯ヶ月」の場合は賃料×月数で計算）",
-  "keyMoney": "礼金（金額。「◯ヶ月」の場合は賃料×月数で計算）",
-  "otherFees": "その他費用（仲介手数料、保証料等）",
-  "contractStart": "契約開始日（西暦で。例: 2024年4月1日）",
-  "contractEnd": "契約終了日（西暦で。例: 2026年3月31日）",
-  "renewalCondition": "更新条件",
-  "tenantName": "借主（乙）の氏名",
-  "tenantAddress": "借主（乙）の住所",
-  "paymentDeadline": "賃料支払期限（例: 毎月末日まで、翌月分を毎月27日まで等）",
-  "paymentMethod": "支払方法（振込先銀行名・支店名・口座番号等）",
-  "earthquakeResistance": "耐震診断の有無と結果",
-  "asbestos": "石綿使用調査の有無と結果",
-  "cancellationTerms": "解約条件（解約予告期間等）",
-  "penalty": "違約金",
-  "earlyTerminationPenalty": "短期解約違約金（1年未満解約時の違約金額等）",
-  "cleaningFee": "退去時クリーニング代（金額・条件）",
-  "keyChangeFee": "鍵交換費用（金額・条件）",
-  "noticePeriod": "解約予告期間（何ヶ月前までに通知が必要か）",
-  "rentProrationOnCancel": "解約時日割り計算（日割り計算の有無・方法）",
-  "petPolicy": "ペット飼育の可否・条件",
-  "instrumentPolicy": "楽器演奏の可否・条件",
-  "restorationObligation": "原状回復条件（借主負担の範囲・内容）",
-  "insuranceRequirement": "火災保険加入義務（加入必須か・指定保険会社等）",
-  "guarantorInfo": "連帯保証人条件（保証人の要件・保証会社利用等）",
-  "parking": "駐車場・駐輪場（有無・料金・条件）",
-  "internet": "インターネット環境（回線種別・費用・制限等）",
-  "prohibitedItems": "禁止事項（禁止行為の一覧）",
-  "keyCount": "貸与鍵の本数・種類",
-  "renewalProcedure": "更新手続き方法（更新料・手続き詳細）",
-  "otherSpecialTerms": "その他特約事項（上記に該当しない特約を全て記載）",
-  "brokerName": "仲介業者名（宅建業者の商号）",
-  "brokerLicense": "宅地建物取引業者の免許番号（例: 東京都知事(3)第12345号）",
-  "tradingOfficerName": "宅地建物取引士の氏名",
-  "managementCompany": "管理会社名",
-  "landlordName": "貸主（甲）の名前"
+  "borrowerName": "借主の氏名",
+  "lenderName": "貸主の名前（法人名含む）",
+  "transactionType": "媒介 or 代理",
+  "broker1": {
+    "licenseNumber": "免許証番号（例: 国土交通大臣(1)第10916号）",
+    "officeAddress": "事務所所在地",
+    "phone": "電話番号",
+    "companyName": "商号または名称",
+    "representative": "代表者名"
+  },
+  "tradingOfficer1": {
+    "registrationNumber": "登録番号",
+    "name": "氏名",
+    "officeName": "事務所名",
+    "officeAddress": "事務所所在地",
+    "phone": "電話番号"
+  },
+  "guaranteeAssociation": {
+    "name": "保証協会名",
+    "address": "保証協会住所",
+    "localBranch": "地方本部名称",
+    "localBranchAddress": "地方本部所在地",
+    "depositOffice": "供託所名",
+    "depositOfficeAddress": "供託所所在地"
+  },
+  "building": {
+    "name": "建物名称（マンション名等）",
+    "addressDisplay": "住居表示の住所",
+    "addressRegistry": "登記簿上の所在地",
+    "type": "マンション/アパート/戸建/テラスハウス のいずれか",
+    "structure": "構造（鉄筋コンクリート造等）",
+    "floorArea": "床面積（約52.72㎡ 等）",
+    "layout": "間取り（1LDK等）",
+    "builtDate": "建築時期"
+  },
+  "landlord": {
+    "sameAsOwner": true,
+    "address": "貸主住所",
+    "name": "貸主名",
+    "remarks": ""
+  },
+  "infrastructure": {
+    "water": { "available": true, "provider": "公営水道等", "remarks": "" },
+    "electricity": { "available": true, "provider": "電力会社名", "remarks": "" },
+    "gas": { "available": true, "type": "都市ガス/プロパン", "provider": "", "remarks": "" },
+    "drainage": { "available": true, "type": "公共下水等", "remarks": "" }
+  },
+  "equipment": {
+    "electricity": { "exists": true, "detail": "" },
+    "gas": { "exists": true, "detail": "" },
+    "stove": { "exists": false, "detail": "" },
+    "waterSupply": { "exists": true, "detail": "" },
+    "sewage": { "exists": true, "detail": "" },
+    "kitchen": { "exists": true, "detail": "" },
+    "toilet": { "exists": true, "detail": "" },
+    "bathroom": { "exists": true, "detail": "" },
+    "washstand": { "exists": true, "detail": "" },
+    "laundry": { "exists": true, "detail": "" },
+    "hotWater": { "exists": true, "detail": "" },
+    "aircon": { "exists": false, "detail": "" },
+    "lighting": { "exists": false, "detail": "" },
+    "furniture": { "exists": false, "detail": "" },
+    "digitalTV": { "exists": false, "detail": "" },
+    "catv": { "exists": false, "detail": "" },
+    "internet": { "exists": false, "detail": "" },
+    "trunkRoom": { "exists": false, "detail": "" },
+    "garden": { "exists": false, "detail": "" },
+    "roofBalcony": { "exists": false, "detail": "" },
+    "keys": { "exists": true, "detail": "鍵番号・本数" }
+  },
+  "commonFacilities": {
+    "elevator": { "exists": false, "detail": "" },
+    "autoLock": { "exists": false, "detail": "" },
+    "mailbox": { "exists": false, "detail": "" },
+    "deliveryBox": { "exists": false, "detail": "" },
+    "trunkRoom": { "exists": false, "detail": "" },
+    "parking": { "exists": false, "detail": "" },
+    "bicycle": { "exists": false, "detail": "" },
+    "bikeParking": { "exists": false, "detail": "" }
+  },
+  "financials": {
+    "rent": 0,
+    "managementFee": 0,
+    "deposit": 0,
+    "keyMoney": 0,
+    "otherFees": [{"name": "費用名", "amount": "金額"}],
+    "paymentDeadline": "翌月分を毎月27日までに等",
+    "paymentMethod": "振込等",
+    "bankInfo": "銀行名 支店名 口座番号"
+  },
+  "cancellation": "契約解除条件の全文",
+  "penalty": {
+    "exists": false,
+    "detail": "違約金の詳細"
+  },
+  "securityMeasure": {
+    "provided": false,
+    "detail": ""
+  },
+  "contract": {
+    "type": "普通賃貸借",
+    "startDate": "契約開始日（西暦）",
+    "endDate": "契約終了日（西暦）",
+    "periodYears": 2,
+    "renewalTerms": "更新条件",
+    "renewalFee": "更新料",
+    "renewalAdminFee": "更新事務手数料"
+  },
+  "usageRestrictions": {
+    "purpose": "居住用",
+    "petPolicy": "ペット可否・条件",
+    "instrumentPolicy": "楽器可否",
+    "renovationPolicy": "リフォーム可否",
+    "other": ""
+  },
+  "depositSettlement": "敷金精算条件",
+  "management": {
+    "buildingManager": { "name": "", "address": "", "phone": "", "person": "", "registrationNumber": "" },
+    "propertyManager": { "name": "", "address": "", "phone": "", "person": "", "registrationNumber": "" }
+  },
+  "otherImportantMatters": "その他重要事項",
+  "remarks": "備考"
 }
 
-**特約事項の抽出について重要：**
-- 「特約条項」「特約事項」「付帯条件」「覚書」「別記」「特記事項」「追加条件」「付則」「補足事項」セクションを重点的に探す
-- 契約書の本文だけでなく、裏面・別紙・付録・覚書なども全て対象
-- 原状回復、火災保険、連帯保証人、駐車場、インターネット、禁止事項、鍵、更新手続き、クリーニング代、鍵交換代、短期解約違約金は必ず探す
-- 金額はカンマなしの数字。「税込」「税別」の注記があればそれも含める
+**注意:**
+- 金額はカンマなしの数値で返す（rent, managementFee, deposit, keyMoney）
 - 令和・平成の日付は西暦に変換
+- 契約書の全ページ（裏面・別紙・特約条項含む）から情報を探す
+- 特約事項はotherImportantMattersまたは各該当フィールドに振り分ける
 
-**抽出精度を上げるための注意：**
-- 金額はカンマなしの数字で返す（例: 50000）。ただし「税込」「税別」等あればそれも含める
-- 敷金・礼金が「◯ヶ月」表記の場合、賃料×月数で計算した金額を返す
-- 令和・平成の日付は西暦に変換（例: 令和6年 → 2024年）
-- 契約書の全ページ（裏面・別紙含む）から情報を探す
+JSONのみ返してください。`;
 
-JSONのみ返してください。説明文は不要です。`
-      : `この登記簿謄本PDFから以下の情報を抽出してJSON形式で返してください。
-値が見つからない場合は空文字""にしてください。
+  const registryPrompt = `この登記簿謄本PDFから以下のJSON構造で情報を抽出してください。
+値が見つからない場合は空文字""またはfalseにしてください。
 
 {
-  "owner": "所有者（甲区に記載の所有権者の氏名/法人名）",
-  "mortgage": "抵当権等（乙区に記載の抵当権・根抵当権等。なければ「なし」）",
-  "address": "所在地",
-  "structure": "構造",
-  "area": "床面積"
+  "registry": {
+    "ownerAddress": "所有者住所（甲区）",
+    "ownerName": "所有者氏名/法人名（甲区）",
+    "ownershipRights": false,
+    "ownershipRightsDetail": "所有権にかかる権利の詳細（差押え等あれば）",
+    "otherRights": false,
+    "otherRightsDetail": "乙区記載の抵当権・根抵当権等の詳細"
+  },
+  "building": {
+    "addressRegistry": "登記簿上の所在地",
+    "structure": "構造",
+    "floorArea": "床面積"
+  }
 }
 
-JSONのみ返してください。説明文は不要です。`;
+JSONのみ返してください。`;
 
   const res = await client.messages.create({
     model: "claude-sonnet-4-20250514",
@@ -109,13 +175,9 @@ JSONのみ返してください。説明文は不要です。`;
         content: [
           {
             type: "document",
-            source: {
-              type: "base64",
-              media_type: "application/pdf",
-              data: pdfBase64,
-            },
+            source: { type: "base64", media_type: "application/pdf", data: pdfBase64 },
           },
-          { type: "text", text: prompt },
+          { type: "text", text: docType === "contract" ? contractPrompt : registryPrompt },
         ],
       },
     ],
@@ -135,26 +197,28 @@ JSONのみ返してください。説明文は不要です。`;
   }
 }
 
+function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
+  const result = { ...target };
+  for (const key of Object.keys(source)) {
+    if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key]) && target[key] && typeof target[key] === "object" && !Array.isArray(target[key])) {
+      result[key] = deepMerge(target[key] as Record<string, unknown>, source[key] as Record<string, unknown>);
+    } else if (source[key] !== "" && source[key] !== undefined && source[key] !== null) {
+      result[key] = source[key];
+    }
+  }
+  return result;
+}
+
 async function getHazardInfo(address: string): Promise<Partial<JusetsuData>> {
   try {
     const geoRes = await fetch(
       `https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(address)}`
     );
     const geoData = await geoRes.json();
-    if (!geoData || geoData.length === 0) {
-      return {
-        floodRisk: "住所から位置情報を取得できませんでした。要確認。",
-        landslideRisk: "住所から位置情報を取得できませんでした。要確認。",
-        tsunamiRisk: "住所から位置情報を取得できませんでした。要確認。",
-      };
-    }
+    if (!geoData || geoData.length === 0) return {};
 
     const [lon, lat] = geoData[0].geometry.coordinates;
     const results: Partial<JusetsuData> = {};
-
-    results.floodRisk = `緯度${lat.toFixed(4)}, 経度${lon.toFixed(4)}付近。市区町村のハザードマップで要確認。`;
-    results.landslideRisk = "市区町村のハザードマップで要確認。";
-    results.tsunamiRisk = "市区町村のハザードマップで要確認。";
 
     // Generate hazard map images
     const baseUrl = process.env.VERCEL_URL
@@ -188,11 +252,7 @@ async function getHazardInfo(address: string): Promise<Partial<JusetsuData>> {
 
     return results;
   } catch {
-    return {
-      floodRisk: "要確認",
-      landslideRisk: "要確認",
-      tsunamiRisk: "要確認",
-    };
+    return {};
   }
 }
 
@@ -208,28 +268,26 @@ export async function POST(request: NextRequest) {
 
     const client = new Anthropic();
 
-    // Convert files to base64
     const [contractB64, registryB64] = await Promise.all([
       contractFile.arrayBuffer().then((b) => Buffer.from(b).toString("base64")),
       registryFile.arrayBuffer().then((b) => Buffer.from(b).toString("base64")),
     ]);
 
-    // Extract info with Claude (PDF directly)
     const [contractData, registryData] = await Promise.all([
       extractWithClaude(client, contractB64, "contract"),
       extractWithClaude(client, registryB64, "registry"),
     ]);
 
-    // Merge data
-    const merged: JusetsuData = {
-      ...defaultJusetsuData,
-      ...contractData,
-      ...registryData,
-    };
+    // Deep merge: defaults -> contract -> registry
+    const merged = deepMerge(
+      deepMerge(defaultJusetsuData as unknown as Record<string, unknown>, contractData),
+      registryData
+    ) as unknown as JusetsuData;
 
     // Get hazard info if address is available
-    if (merged.address) {
-      const hazardData = await getHazardInfo(merged.address);
+    const address = merged.building?.addressDisplay || merged.building?.addressRegistry;
+    if (address) {
+      const hazardData = await getHazardInfo(address);
       Object.assign(merged, hazardData);
     }
 

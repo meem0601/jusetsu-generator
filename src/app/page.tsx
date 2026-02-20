@@ -47,7 +47,7 @@ export default function Home() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `重要事項説明書_${data.propertyName || "物件"}.pdf`;
+      a.download = `重要事項説明書_${data.building?.name || "物件"}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
@@ -65,13 +65,13 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          address: data.address,
+          address: data.building?.addressDisplay || data.building?.addressRegistry || "",
           floodMapImage: data.floodMapImage,
           landslideMapImage: data.landslideMapImage,
           tsunamiMapImage: data.tsunamiMapImage,
-          floodRisk: data.floodRisk,
-          landslideRisk: data.landslideRisk,
-          tsunamiRisk: data.tsunamiRisk,
+          floodRisk: data.hazardMap?.floodDetail || "",
+          landslideRisk: "",
+          tsunamiRisk: "",
         }),
       });
       if (!res.ok) throw new Error("ハザードマップPDF生成に失敗しました");
@@ -79,7 +79,7 @@ export default function Home() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `ハザードマップ_${data.propertyName || "物件"}.pdf`;
+      a.download = `ハザードマップ_${data.building?.name || "物件"}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
