@@ -152,11 +152,39 @@ async function getHazardInfo(address: string): Promise<Partial<JusetsuData>> {
     const [lon, lat] = geoData[0].geometry.coordinates;
     const results: Partial<JusetsuData> = {};
 
-    // Simple heuristic based on location
-    // In production, use proper tile-based hazard map lookup
     results.floodRisk = `緯度${lat.toFixed(4)}, 経度${lon.toFixed(4)}付近。市区町村のハザードマップで要確認。`;
     results.landslideRisk = "市区町村のハザードマップで要確認。";
     results.tsunamiRisk = "市区町村のハザードマップで要確認。";
+
+    // Generate hazard map images
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000";
+
+    const types = [
+      { type: "flood", key: "floodMapImage" },
+      { type: "landslide", key: "landslideMapImage" },
+      { type: "tsunami", key: "tsunamiMapImage" },
+    ] as const;
+
+    const mapResults = await Promise.allSettled(
+      types.map(async ({ type, key }) => {
+        const res = await fetch(`${baseUrl}/api/hazard-map`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lat, lon, type }),
+        });
+        if (!res.ok) return { key, image: "" };
+        const data = await res.json();
+        return { key, image: data.image || "" };
+      })
+    );
+
+    for (const r of mapResults) {
+      if (r.status === "fulfilled" && r.value.image) {
+        (results as Record<string, string>)[r.value.key] = r.value.image;
+      }
+    }
 
     return results;
   } catch {

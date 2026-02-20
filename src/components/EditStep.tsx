@@ -6,7 +6,9 @@ interface Props {
   data: JusetsuData;
   onChange: (data: JusetsuData) => void;
   onGeneratePdf: () => void;
+  onGenerateHazardPdf: () => void;
   generating: boolean;
+  generatingHazard: boolean;
 }
 
 const sections = [
@@ -141,7 +143,7 @@ const sections = [
   },
 ] as const;
 
-export default function EditStep({ data, onChange, onGeneratePdf, generating }: Props) {
+export default function EditStep({ data, onChange, onGeneratePdf, onGenerateHazardPdf, generating, generatingHazard }: Props) {
   const update = (key: string, value: string) => {
     onChange({ ...data, [key]: value });
   };
@@ -186,17 +188,46 @@ export default function EditStep({ data, onChange, onGeneratePdf, generating }: 
                 )}
               </div>
             ))}
+            {section.title === "🗺️ ハザードマップ" && (
+              <>
+                {data.floodMapImage && (
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">洪水ハザードマップ画像</label>
+                    <img src={`data:image/png;base64,${data.floodMapImage}`} alt="洪水ハザードマップ" className="w-full rounded-lg border" />
+                  </div>
+                )}
+                {data.landslideMapImage && (
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">土砂災害ハザードマップ画像</label>
+                    <img src={`data:image/png;base64,${data.landslideMapImage}`} alt="土砂災害ハザードマップ" className="w-full rounded-lg border" />
+                  </div>
+                )}
+                {data.tsunamiMapImage && (
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">津波ハザードマップ画像</label>
+                    <img src={`data:image/png;base64,${data.tsunamiMapImage}`} alt="津波ハザードマップ" className="w-full rounded-lg border" />
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       ))}
 
-      <div className="sticky bottom-4">
+      <div className="sticky bottom-4 space-y-2">
         <button
           onClick={onGeneratePdf}
           disabled={generating}
           className="w-full py-4 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700 transition-colors shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {generating ? "⏳ PDF生成中..." : "📄 重説PDFを生成・ダウンロード"}
+        </button>
+        <button
+          onClick={onGenerateHazardPdf}
+          disabled={generatingHazard || (!data.floodMapImage && !data.landslideMapImage && !data.tsunamiMapImage)}
+          className="w-full py-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {generatingHazard ? "⏳ ハザードマップPDF生成中..." : "🗺️ ハザードマップPDFをダウンロード"}
         </button>
       </div>
     </div>

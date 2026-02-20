@@ -12,6 +12,7 @@ export default function Home() {
   const [step, setStep] = useState<Step>("upload");
   const [data, setData] = useState<JusetsuData | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [generatingHazard, setGeneratingHazard] = useState(false);
 
   const handleUpload = async (contractFile: File, registryFile: File) => {
     setStep("processing");
@@ -52,6 +53,38 @@ export default function Home() {
       alert(e instanceof Error ? e.message : "エラーが発生しました");
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleGenerateHazardPdf = async () => {
+    if (!data) return;
+    setGeneratingHazard(true);
+    try {
+      const res = await fetch("/api/generate-hazard-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          address: data.address,
+          floodMapImage: data.floodMapImage,
+          landslideMapImage: data.landslideMapImage,
+          tsunamiMapImage: data.tsunamiMapImage,
+          floodRisk: data.floodRisk,
+          landslideRisk: data.landslideRisk,
+          tsunamiRisk: data.tsunamiRisk,
+        }),
+      });
+      if (!res.ok) throw new Error("ハザードマップPDF生成に失敗しました");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ハザードマップ_${data.propertyName || "物件"}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "エラーが発生しました");
+    } finally {
+      setGeneratingHazard(false);
     }
   };
 
@@ -101,7 +134,9 @@ export default function Home() {
             data={data}
             onChange={setData}
             onGeneratePdf={handleGeneratePdf}
+            onGenerateHazardPdf={handleGenerateHazardPdf}
             generating={generating}
+            generatingHazard={generatingHazard}
           />
         )}
       </div>

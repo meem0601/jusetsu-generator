@@ -43,6 +43,9 @@ export interface JusetsuData {
   floodRisk: string;
   landslideRisk: string;
   tsunamiRisk: string;
+  floodMapImage: string;
+  landslideMapImage: string;
+  tsunamiMapImage: string;
 
   // 耐震・石綿
   earthquakeResistance: string;
@@ -123,6 +126,9 @@ export const defaultJusetsuData: JusetsuData = {
   floodRisk: "",
   landslideRisk: "",
   tsunamiRisk: "",
+  floodMapImage: "",
+  landslideMapImage: "",
+  tsunamiMapImage: "",
   earthquakeResistance: "",
   asbestos: "",
   cancellationTerms: "",
