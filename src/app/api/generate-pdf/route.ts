@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, rgb } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 import { JusetsuData } from "@/types/jusetsu";
 
 // pdf-lib doesn't have native Japanese font support, so we'll embed a font
@@ -10,17 +11,16 @@ export async function POST(request: NextRequest) {
   try {
     const data: JusetsuData = await request.json();
 
-    // Fetch a Japanese font (Noto Sans JP from Google Fonts)
-    const fontUrl =
-      "https://cdn.jsdelivr.net/gh/nicholasgasior/gfonts@master/fonts/noto-sans-jp/NotoSansJP-Regular.otf";
-    const fontBytes = await fetch(fontUrl).then((r) => r.arrayBuffer());
+    // Load Japanese font from reliable CDN
+    const fontUrl = "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansjp/NotoSansJP%5Bwght%5D.ttf";
+    const fontRes = await fetch(fontUrl);
+    if (!fontRes.ok) throw new Error("Failed to load font");
+    const fontBytes = await fontRes.arrayBuffer();
 
     const pdfDoc = await PDFDocument.create();
+    pdfDoc.registerFontkit(fontkit);
     const font = await pdfDoc.embedFont(fontBytes);
-    const boldFontBytes = await fetch(
-      "https://cdn.jsdelivr.net/gh/nicholasgasior/gfonts@master/fonts/noto-sans-jp/NotoSansJP-Bold.otf"
-    ).then((r) => r.arrayBuffer());
-    const boldFont = await pdfDoc.embedFont(boldFontBytes);
+    const boldFont = font; // Variable font, same file
 
     const pageWidth = 595.28; // A4
     const pageHeight = 841.89;
@@ -203,7 +203,22 @@ export async function POST(request: NextRequest) {
     drawField("違約金", data.penalty);
 
     drawSection("特約事項");
-    drawField("特約", data.specialTerms);
+    drawField("短期解約違約金", data.earlyTerminationPenalty);
+    drawField("クリーニング代", data.cleaningFee);
+    drawField("鍵交換費用", data.keyChangeFee);
+    drawField("解約予告期間", data.noticePeriod);
+    drawField("日割り計算", data.rentProrationOnCancel);
+    drawField("ペット可否", data.petPolicy);
+    drawField("楽器可否", data.instrumentPolicy);
+    drawField("原状回復条件", data.restorationObligation);
+    drawField("火災保険", data.insuranceRequirement);
+    drawField("連帯保証人", data.guarantorInfo);
+    drawField("駐車場・駐輪場", data.parking);
+    drawField("ネット環境", data.internet);
+    drawField("禁止事項", data.prohibitedItems);
+    drawField("貸与鍵", data.keyCount);
+    drawField("更新手続き", data.renewalProcedure);
+    drawField("その他特約", data.otherSpecialTerms);
 
     drawSection("管理・貸主");
     drawField("管理会社", data.managementCompany);

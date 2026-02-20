@@ -52,8 +52,23 @@ export interface JusetsuData {
   cancellationTerms: string;
   penalty: string;
 
-  // 特約
-  specialTerms: string;
+  // 特約事項（詳細）
+  earlyTerminationPenalty: string;
+  cleaningFee: string;
+  keyChangeFee: string;
+  noticePeriod: string;
+  rentProrationOnCancel: string;
+  petPolicy: string;
+  instrumentPolicy: string;
+  restorationObligation: string;
+  insuranceRequirement: string;
+  guarantorInfo: string;
+  parking: string;
+  internet: string;
+  prohibitedItems: string;
+  keyCount: string;
+  renewalProcedure: string;
+  otherSpecialTerms: string;
 
   // 管理会社
   managementCompany: string;
@@ -94,7 +109,22 @@ export const defaultJusetsuData: JusetsuData = {
   asbestos: "",
   cancellationTerms: "",
   penalty: "",
-  specialTerms: "",
+  earlyTerminationPenalty: "",
+  cleaningFee: "",
+  keyChangeFee: "",
+  noticePeriod: "",
+  rentProrationOnCancel: "",
+  petPolicy: "",
+  instrumentPolicy: "",
+  restorationObligation: "",
+  insuranceRequirement: "",
+  guarantorInfo: "",
+  parking: "",
+  internet: "",
+  prohibitedItems: "",
+  keyCount: "",
+  renewalProcedure: "",
+  otherSpecialTerms: "",
   managementCompany: "",
   landlordName: "",
 };
