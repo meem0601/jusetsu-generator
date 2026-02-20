@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument, PDFPage, PDFFont, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { JusetsuData } from "@/types/jusetsu";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import {
   PAGE1,
@@ -150,22 +150,39 @@ export async function POST(request: NextRequest) {
   try {
     const data: JusetsuData = await request.json();
 
-    // Load template PDF
+    // Load template PDF - try local file first, then fetch from public URL
+    let templateBytes: Buffer;
     const templatePath = join(process.cwd(), "public", "template.pdf");
-    const templateBytes = readFileSync(templatePath);
+    if (existsSync(templatePath)) {
+      templateBytes = readFileSync(templatePath);
+    } else {
+      // Vercel: fetch from public URL
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000";
+      const templateRes = await fetch(`${baseUrl}/template.pdf`);
+      if (!templateRes.ok) throw new Error("テンプレートPDFの取得に失敗しました");
+      templateBytes = Buffer.from(await templateRes.arrayBuffer());
+    }
     const pdfDoc = await PDFDocument.load(templateBytes);
 
-    // Embed Japanese font
+    // Embed Japanese font - try local file first, then fetch
     pdfDoc.registerFontkit(fontkit);
-    const fontPath = join(process.cwd(), "public", "NotoSansJP-Regular.ttf");
     let fontBytes: ArrayBuffer;
-    try {
+    const fontPath = join(process.cwd(), "public", "NotoSansJP-Regular.ttf");
+    if (existsSync(fontPath)) {
       fontBytes = readFileSync(fontPath).buffer as ArrayBuffer;
-    } catch {
-      // Fallback: fetch from Google Fonts
-      const fontRes = await fetch(
-        "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansjp/NotoSansJP%5Bwght%5D.ttf"
-      );
+    } else {
+      // Vercel: fetch from public URL or Google Fonts
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000";
+      let fontRes = await fetch(`${baseUrl}/NotoSansJP-Regular.ttf`);
+      if (!fontRes.ok) {
+        fontRes = await fetch(
+          "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansjp/NotoSansJP%5Bwght%5D.ttf"
+        );
+      }
       fontBytes = await fontRes.arrayBuffer();
     }
     const font = await pdfDoc.embedFont(fontBytes);

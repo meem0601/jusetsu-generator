@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { JusetsuData, EquipmentItem } from "@/types/jusetsu";
 import { MEEM_PRESET } from "@/lib/meem-preset";
 
@@ -14,6 +15,34 @@ interface Props {
 }
 
 export default function EditStep({ data, onChange, onGeneratePdf, onGenerateHazardPdf, generating, generatingHazard, onNext }: Props) {
+  const [fetchingHazard, setFetchingHazard] = useState(false);
+
+  const handleFetchHazardMaps = async () => {
+    const address = data.building?.addressDisplay || data.building?.addressRegistry;
+    if (!address) {
+      alert("住所が入力されていません");
+      return;
+    }
+    setFetchingHazard(true);
+    try {
+      const res = await fetch("/api/hazard-map", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address }),
+      });
+      if (!res.ok) throw new Error("ハザードマップ取得に失敗しました");
+      const result = await res.json();
+      const newData = JSON.parse(JSON.stringify(data));
+      if (result.floodMapImage) newData.floodMapImage = result.floodMapImage;
+      if (result.landslideMapImage) newData.landslideMapImage = result.landslideMapImage;
+      if (result.tsunamiMapImage) newData.tsunamiMapImage = result.tsunamiMapImage;
+      onChange(newData);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "エラーが発生しました");
+    } finally {
+      setFetchingHazard(false);
+    }
+  };
   // Helper to update nested paths
   const updateField = (path: string, value: unknown) => {
     const keys = path.split(".");
@@ -299,6 +328,17 @@ export default function EditStep({ data, onChange, onGeneratePdf, onGenerateHaza
       {/* ハザードマップ */}
       <Section title="🗺️ Ⅰ-10. ハザードマップ">
         <div className="space-y-3">
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={handleFetchHazardMaps}
+              disabled={fetchingHazard}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {fetchingHazard ? "⏳ ハザードマップ取得中...（約1分）" : "🗺️ ハザードマップを自動取得"}
+            </button>
+            <span className="ml-2 text-xs text-gray-500">住所からハザードマップ画像を自動取得します</span>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {renderCheckbox("洪水ハザードマップあり", "hazardMap.floodExists")}
             {renderInput("洪水詳細", "hazardMap.floodDetail")}

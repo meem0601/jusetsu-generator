@@ -142,7 +142,7 @@ async function extractWithClaude(
     "buildingManager": { "name": "", "address": "", "phone": "", "person": "", "registrationNumber": "" },
     "propertyManager": { "name": "", "address": "", "phone": "", "person": "", "registrationNumber": "" }
   },
-  "otherImportantMatters": "その他重要事項",
+  "otherImportantMatters": "特約事項・特約条項・特記事項の全文をここに入れる（改行は\\nで）",
   "remarks": "備考"
 }
 
@@ -150,7 +150,22 @@ async function extractWithClaude(
 - 金額はカンマなしの数値で返す（rent, managementFee, deposit, keyMoney）
 - 令和・平成の日付は西暦に変換
 - 契約書の全ページ（裏面・別紙・特約条項含む）から情報を探す
-- 特約事項はotherImportantMattersまたは各該当フィールドに振り分ける
+
+**【特約事項の抽出について - 最重要】**
+- 契約書内の「特約条項」「特約事項」「特記事項」「追加条件」「その他の条件」等のセクションを必ず探すこと
+- 見つかった場合、その全文（箇条書き含む）を otherImportantMatters にそのまま転記すること
+- 以下のような典型的な特約を見逃さないこと:
+  - 退去時の原状回復に関する特約（クリーニング費用負担等）
+  - 短期解約違約金（1年未満解約で賃料1ヶ月分等）
+  - ペット飼育に関する条件・追加敷金
+  - 火災保険・家財保険の加入義務
+  - 鍵交換費用の負担
+  - 更新料・更新事務手数料
+  - 保証会社加入義務
+  - 駐車場・駐輪場の利用条件
+  - 騒音・生活マナーに関する規定
+  - 連帯保証人の極度額
+- 特約が見つからない場合は空文字""にすること（推測で書かない）
 
 JSONのみ返してください。`;
 
@@ -227,37 +242,19 @@ async function getHazardInfo(address: string): Promise<Partial<JusetsuData>> {
     if (!geoData || geoData.length === 0) return {};
 
     const [lon, lat] = geoData[0].geometry.coordinates;
-    const results: Partial<JusetsuData> = {};
-
-    // Generate hazard map images
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
-
-    const types = [
-      { type: "flood", key: "floodMapImage" },
-      { type: "landslide", key: "landslideMapImage" },
-      { type: "tsunami", key: "tsunamiMapImage" },
-    ] as const;
-
-    const mapResults = await Promise.allSettled(
-      types.map(async ({ type, key }) => {
-        const res = await fetch(`${baseUrl}/api/hazard-map`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lat, lon, type }),
-        });
-        if (!res.ok) return { key, image: "" };
-        const data = await res.json();
-        return { key, image: data.image || "" };
-      })
-    );
-
-    for (const r of mapResults) {
-      if (r.status === "fulfilled" && r.value.image) {
-        (results as Record<string, string>)[r.value.key] = r.value.image;
-      }
-    }
+    
+    // Set hazard map info based on geocoding success
+    // The actual map images will be fetched on-demand from the edit screen
+    const results: Partial<JusetsuData> = {
+      hazardMap: {
+        floodExists: true,
+        floodDetail: `対象地点（${lat.toFixed(4)}, ${lon.toFixed(4)}）のハザードマップを確認してください`,
+        stormWaterExists: false,
+        stormWaterDetail: "",
+        stormSurgeExists: false,
+        stormSurgeDetail: "",
+      },
+    };
 
     return results;
   } catch {

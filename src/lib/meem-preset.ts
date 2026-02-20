@@ -1,17 +1,17 @@
 export const MEEM_PRESET = {
   broker1: {
-    licenseNumber: "国土交通大臣（1）第10916号",
-    officeAddress: "京都府京都市中京区二条通烏丸東入仁王門町3 千坂御所南ビル3階",
-    phone: "075-600-0170",
-    companyName: "（株）MEEM",
-    representative: "牧野 連",
+    licenseNumber: "京都府知事(3)第14117号",
+    officeAddress: "京都府京都市南区西九条池ノ内町93",
+    phone: "075-693-7755",
+    companyName: "株式会社MEEM",
+    representative: "須田 將太",
   },
   tradingOfficer1: {
-    registrationNumber: "（大阪）第112403号",
-    name: "小笠原 憲一",
-    officeName: "（株）MEEM",
-    officeAddress: "京都府京都市中京区二条通烏丸東入仁王門町3 千坂御所南ビル3階",
-    phone: "075-600-0170",
+    registrationNumber: "",
+    name: "",
+    officeName: "株式会社MEEM",
+    officeAddress: "京都府京都市南区西九条池ノ内町93",
+    phone: "075-693-7755",
   },
   guaranteeAssociation: {
     name: "公益社団法人 不動産保証協会",
