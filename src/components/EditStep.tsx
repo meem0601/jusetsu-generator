@@ -1,6 +1,7 @@
 "use client";
 
 import { JusetsuData, EquipmentItem } from "@/types/jusetsu";
+import { MEEM_PRESET } from "@/lib/meem-preset";
 
 interface Props {
   data: JusetsuData;
@@ -111,6 +112,24 @@ export default function EditStep({ data, onChange, onGeneratePdf, onGenerateHaza
           {renderInput("取引態様", "transactionType")}
         </div>
       </Section>
+
+      {/* MEEMプリセットボタン */}
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => {
+            const newData = JSON.parse(JSON.stringify(data));
+            newData.broker1 = { ...newData.broker1, ...MEEM_PRESET.broker1 };
+            newData.tradingOfficer1 = { ...newData.tradingOfficer1, ...MEEM_PRESET.tradingOfficer1 };
+            newData.guaranteeAssociation = { ...newData.guaranteeAssociation, ...MEEM_PRESET.guaranteeAssociation };
+            onChange(newData);
+          }}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+        >
+          🏢 MEEMの情報を自動入力
+        </button>
+        <span className="ml-2 text-xs text-gray-500">宅建業者・取引士・保証協会をMEEMプリセットで一括入力</span>
+      </div>
 
       {/* 宅地建物取引業者 */}
       <Section title="🏢 宅地建物取引業者（1）">
