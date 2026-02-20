@@ -4,9 +4,10 @@ import { useState } from "react";
 import UploadStep from "@/components/UploadStep";
 import ProcessingStep from "@/components/ProcessingStep";
 import EditStep from "@/components/EditStep";
+import HazardMapStep from "@/components/HazardMapStep";
 import { JusetsuData } from "@/types/jusetsu";
 
-type Step = "upload" | "processing" | "edit";
+type Step = "upload" | "processing" | "edit" | "hazard";
 
 export default function Home() {
   const [step, setStep] = useState<Step>("upload");
@@ -111,6 +112,7 @@ export default function Home() {
             { key: "upload", label: "① アップロード" },
             { key: "processing", label: "② AI解析中" },
             { key: "edit", label: "③ 確認・編集" },
+            { key: "hazard", label: "④ ハザードマップ" },
           ].map((s, i) => (
             <div key={s.key} className="flex items-center gap-2">
               {i > 0 && <div className="w-8 h-0.5 bg-gray-300" />}
@@ -137,6 +139,18 @@ export default function Home() {
             onGenerateHazardPdf={handleGenerateHazardPdf}
             generating={generating}
             generatingHazard={generatingHazard}
+            onNext={() => setStep("hazard")}
+          />
+        )}
+        {step === "hazard" && data && (
+          <HazardMapStep
+            data={data}
+            onChange={setData}
+            onGeneratePdf={handleGeneratePdf}
+            onGenerateHazardPdf={handleGenerateHazardPdf}
+            generating={generating}
+            generatingHazard={generatingHazard}
+            onBack={() => setStep("edit")}
           />
         )}
       </div>

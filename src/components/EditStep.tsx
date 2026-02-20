@@ -9,6 +9,7 @@ interface Props {
   onGenerateHazardPdf: () => void;
   generating: boolean;
   generatingHazard: boolean;
+  onNext?: () => void;
 }
 
 const sections = [
@@ -143,7 +144,7 @@ const sections = [
   },
 ] as const;
 
-export default function EditStep({ data, onChange, onGeneratePdf, onGenerateHazardPdf, generating, generatingHazard }: Props) {
+export default function EditStep({ data, onChange, onGeneratePdf, onGenerateHazardPdf, generating, generatingHazard, onNext }: Props) {
   const update = (key: string, value: string) => {
     onChange({ ...data, [key]: value });
   };
@@ -215,6 +216,14 @@ export default function EditStep({ data, onChange, onGeneratePdf, onGenerateHaza
       ))}
 
       <div className="sticky bottom-4 space-y-2">
+        {onNext && (
+          <button
+            onClick={onNext}
+            className="w-full py-4 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg cursor-pointer"
+          >
+            次へ → ハザードマップ取得
+          </button>
+        )}
         <button
           onClick={onGeneratePdf}
           disabled={generating}
